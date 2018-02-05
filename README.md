@@ -1,4 +1,4 @@
-# dti_preprocess
+# DTI_PREPROCESS
 Unwarping of B0 inhomogeneity distortion, correction of eddy current distortion and motion, tensor calculation and QC using FSL
 
 ## Installation
@@ -7,7 +7,9 @@ Unwarping of B0 inhomogeneity distortion, correction of eddy current distortion 
 
 1. After uncompressing the downloaded dti_preprocess.zip, move dti_preprocess into /usr/local 
 
-  `sudo mv dti_preprocess /usr/local/`
+  ```
+  sudo mv dti_preprocess /usr/local/
+  ```
 
 2. Add the following lines in .bashrc in your home directory
 
@@ -20,6 +22,8 @@ Unwarping of B0 inhomogeneity distortion, correction of eddy current distortion 
 
 4. Open new terminal and run dti_preprocess so that you should be able to see the help page
 
-  `dti_preprocess`
+  ```
+  dti_preprocess
+  ```
 
 
