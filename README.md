@@ -1,6 +1,5 @@
 # dti_preprocess
-# Unwarping of B0 inhomogeneity distortion, correction of eddy current distortion and motion, tensor calculation and QC using FSL
-# Takuya Hayashi, Center for Life Science Technologies, RIKEN (takuya.hayashi@riken.jp, takuya.hayashi@gmail.com), Kobe, JP
+Unwarping of B0 inhomogeneity distortion, correction of eddy current distortion and motion, tensor calculation and QC using FSL
 
 Installation
 
