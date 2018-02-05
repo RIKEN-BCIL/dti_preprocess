@@ -11,9 +11,8 @@ Unwarping of B0 inhomogeneity distortion, correction of eddy current distortion 
 
 2. Add the following lines in .bashrc in your home directory
 
-  `DTI_PREPROCESS=/usr/local/dti_preprocess`
-  `PATH=${DTI_PREPROCESS}/bin:${PATH}`
-  `export DTI_PREPROCESS PATH`
+  `export DTI_PREPROCESS=/usr/local/dti_preprocess;`
+  `export PATH=${DTI_PREPROCESS}/bin:${PATH};`
 
 3. Modify the section of "Default environments" in `/usr/local/dti_preprocess/etc/conf/dti_preprocess.conf`, depending on your environments. 
 
