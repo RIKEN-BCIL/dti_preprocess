@@ -1,0 +1,12 @@
+#!/bin/bash
+
+Usage_exit () {
+echo "$0 <num> [digit]"
+echo "digit = 7 by default"
+exit 1;
+}
+[ "$1" = "" ] && Usage_exit
+digit=$2
+if [ "$digit" = "" ] ; then digit=7;fi
+LANG=C printf "%1.${digit}f" $1
+exit 0;

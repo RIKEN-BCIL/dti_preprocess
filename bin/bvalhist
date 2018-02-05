@@ -1,0 +1,38 @@
+#! /bin/sh
+# make histgram of b-value
+# Takuya Hayashi, CLST RIKEN (takuya.hayashi@riken.jp or takuya.hayashi@
+#
+
+in=$1
+tmp=tmp_$$
+
+transposematrix $1 ${tmp}_bvals
+cat <<EOF > $tmp
+reset
+#n=100 #number of intervals
+max=4000 #max value
+min=0 #min value
+#width=(max-min)/n #interval width
+width=100
+hist(x,width)=width*floor(x/width)+width/2.0
+set term png #output terminal and file
+set output "${in}_histogram.png"
+set xrange [min:max]
+set yrange [0:]
+set offset graph 0.05,0.05,0.05,0.0
+#set xtics min,(max-min)/5,max
+set xtics min,1000,max
+set boxwidth width*0.9
+set style fill solid 0.5 #fillstyle
+set tics out nomirror
+set xlabel "b value"
+set ylabel "Frequency"
+#count and plot
+plot '${tmp}_bvals' u (hist(\$1,width)):(1.0) smooth freq w boxes lc rgb"blue" notitle
+EOF
+
+gnuplot $tmp
+rm $tmp ${tmp}_bvals
+
+exit 0;
+

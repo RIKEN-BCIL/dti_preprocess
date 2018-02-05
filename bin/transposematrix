@@ -1,0 +1,32 @@
+#!/bin/sh
+usage_exit() {
+      cat <<EOF
+  
+  Usage: `basename $0` <input matrix in txt> <output matrix in text>
+
+EOF
+  exit 1;
+}
+
+
+[ "$2" = "" ] && usage_exit
+
+	nl=`cat $1 | awk 'BEGIN {N=0}{N++} END{print N}'`
+	nw=`cat $1 | awk 'NR==1 {print NF}'`
+	if [ -e $2 ] ; then
+   		rm -f $2
+	fi
+	touch $2
+	i=1
+	while [ $i -le $nw ] ; do
+   		j=1
+   		while [ $j -le $nl ] ; do
+      		cat $1 | awk 'NR=='$j' {printf "%f ",  $'$i'}' >> $2
+      		j=`expr $j + 1`
+   		done
+   	echo "" >> $2
+   	i=`expr $i + 1`
+	done
+
+exit 0;
+

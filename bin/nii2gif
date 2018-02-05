@@ -1,0 +1,98 @@
+#!/bin/bash
+# nif2gif
+# Nobuyoshi Tanki and Takuya Hayashi
+# Convert 3D nifti image to 2D gif image or 4D nifti image to 2D gif movie.
+
+
+######### functions #########
+function usage_exit(){
+cat << EOF
+
+ Convert 3D nifti image to 2D gif image or 4D nifti image to 2D gif movie.
+
+  Usage: nif2gif <3D or 4D nifti> <output.gif> [options]
+
+    Options:
+
+        -L       : Label slices with slice number. (default=off)
+	-l <lut> : use a different colour map from that specified in the header.
+	-s <scale> : scaling
+	-i "<min> <max>" : specify intensity min and max
+	-e <thr> : use the specified threshold for edges (if >0 use this proportion of max-min, if <0, use the absolute value) 
+	-t       : produce semi-transparent (dithered) edges.
+	-n       : use nearest-neighbour interpolation for output.
+	-u       : do not put left-right labels in output.
+	-x/y/z <slice>    : output sagittal, coronal or axial slice 
+     		 (if <slice> >0 it is a fraction of image dimension, if <0, it is an absolute slice number)
+	-a	 : output mid-sagittal, -coronal and -axial slices into one image (default)
+        -T <time in msec> : time for frame interval (default: 1 sec)
+
+EOF
+exit 0;
+}
+
+# to be considered
+#	-i <min> <max> : specify intensity min and max for display range.
+#	-A <width> <filename>: output _all_ axial slices into one image of _max_ width <width>
+#	-S <sample> <width> <filename> : as -A but only include every <sample>'th slice
+
+
+[ "$2" = "" ] && usage_exit
+
+in=$1;shift;out=$1;shift
+out=`echo $out | sed -e 's/\.gif//'`
+
+T="-time 100"
+a=-a
+
+if [ ! $# -eq 0 ] ; then
+while getopts Ll:s:i:e:tnux:y:z:aT: OPT
+ do
+ case "$OPT" in 
+   "L" ) L="-L";;
+   "l" ) lut="-l $OPTARG";;
+   "s" ) scale="-s $OPTARG";;
+   "i" ) intensity="-i $OPTARG";;
+   "e" ) thr="-e $OPTARG";;
+   "t" ) t="-t";;
+   "n" ) n="-n";;
+   "u" ) u="-u";;
+   "x" ) a="-x $OPTARG";;
+   "y" ) a="-y $OPTARG";;
+   "z" ) a="-z $OPTARG";;
+   "a" ) a="-a";;
+   "T" ) T="$OPTARG";T=`echo "$T / 10" | bc`;T="-time $T" ;;
+    * )  usage_exit;;
+ esac
+done;
+fi
+
+if [ `imtest $in` -eq 0 ] ; then echo "Error: invalid image $in"; exit 0; fi
+tmp=tmp_$$
+
+if [ "`fslval $in dim4`" -eq 1 ] ; then
+ # 3D nifti image to 2D gif image
+ slicer $in $L $lut $scale $intensity $thr $t $n $u $a ${tmp}.png
+ convert ${tmp}.png ${out}.gif;
+
+ #remove temporary file 
+ rm ${tmp}.png
+
+
+else
+ # 4D nifti image to 2D gif movie.
+ fslsplit $in ${tmp}_ -t
+ for ii in ${tmp}_????.nii.gz; do
+  ii=`remove_ext $ii`
+  slicer $ii $L $lut $scale $intensity $thr $t $n $u $a ${ii}.png
+  convert ${ii}.png ${ii}.gif;
+ done
+
+ whirlgif -o ${out}.gif -loop 0 $T ${tmp}_????.gif
+
+ #remove temporary file
+ rm ${tmp}_????.nii.gz ${tmp}_????.png ${tmp}_????.gif
+
+fi
+
+exit 1;

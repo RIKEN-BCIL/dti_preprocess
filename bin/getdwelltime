@@ -1,0 +1,36 @@
+#! /bin/bash
+# Get dwelltime
+
+usage_exit() {
+      cat <<EOF
+
+Get dwell-time from Siemens DICOM
+
+   Usage: getdwelltime <DICOM file>
+
+EOF
+    exit 1;
+}
+
+[ "$1" = "" ] && usage_exit
+
+if [ `which gdcmdump` = "" ] ; then
+ echo "Error: please install gdcmdump beforehand"
+ exit 1;
+fi
+
+dcm=$1
+
+DwelltimeRead=`gdcmdump -i $dcm | grep "0019,1018" | awk '{print $4}' | sed -e 's/\[//' | sed -e 's/\]//'` # in nano sec
+DwelltimeRead=`echo "$DwelltimeRead / 1000000000" | bc -l`
+BandwidthPerPixelPhaseEncode=`gdcmdump -i $dcm | grep "0019,1028" | awk '{print $4}' | sed -e 's/\[//' | sed -e 's/\]//'`  # in Hz
+NumPhaseEncodingSample=`gdcmdump -i $dcm | grep "0051,100b" | awk '{print $4}' | sed -e 's/\[//' | sed -e 's/\]//' | cut -d 'p' -f 1`
+
+DwelltimePhase=`echo "1 / ($BandwidthPerPixelPhaseEncode * $NumPhaseEncodingSample)" | bc -l`
+
+echo "DwelltimeRead = $DwelltimeRead (sec)"
+echo "DwelltimePhase = $DwelltimePhase (sec)"
+
+exit 0;
+
+

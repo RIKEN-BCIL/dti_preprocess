@@ -1,0 +1,45 @@
+#! /bin/sh
+# swap b-vector files
+# written by Takuya hayashi, CMIS (takuya.hayashi@riken.jp)
+
+Usage () {
+ echo ""
+ echo "Usage: $0 <input bvecs-file> <a> <b> <c> <output bvecs-file>"
+ echo ""
+ echo " where a,b,c represent the new x,y,z axes in terms of the"
+ echo " old axes.  They can take values of -x,x,y,-y,z,-z"
+ echo " e.g. bvecswap inbvecs y x -z outbvecs"
+ echo ""
+ echo " <input bvecs-file> must be formatted for use in FDT"
+ echo ""
+ exit 1;
+}
+
+[ "$1" =  "" ] && Usage
+
+x=`cat $1 | awk '{if (NR==1) print}'`
+y=`cat $1 | awk '{if (NR==2) print}'`
+z=`cat $1 | awk '{if (NR==3) print}'`
+if [ -e $5 ]; then
+ rm $5 
+fi
+
+touch $5
+
+for i in $2 $3 $4; do
+ if [ "$i" = "-x" ] ; then
+    for i in $x; do echo "$i * -1" | bc -l | awk '{printf"%f ",$0}' >> $5 ; done; echo "" >> $5
+ elif [ "$i" = "-y" ] ; then
+    for i in $y; do echo "$i * -1" | bc -l | awk '{printf"%f ",$0}' >> $5 ; done; echo "" >> $5
+ elif [ "$i" = "-z" ] ; then
+    for i in $z; do echo "$i * -1" | bc -l | awk '{printf"%f ",$0}' >> $5 ; done; echo "" >> $5
+ elif [ "$i" = "x" ] ; then
+    echo $x >> $5
+ elif [ "$i" = "y" ] ; then
+    echo $y >> $5 
+ elif [ "$i" = "z" ] ; then
+    echo $z >> $5 
+ fi;
+done
+
+exit 1

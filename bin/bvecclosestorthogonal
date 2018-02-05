@@ -1,0 +1,76 @@
+#! /bin/bash
+# Find the diffusion volumes and b-vectors of which gradient direction lies the closest to the X, Y, Z orthogonal axes among those of highest gradients.
+
+
+CMD=`echo $0 | sed -e 's/^\(.*\)\/\([^\/]*\)/\2/'`
+
+usage_exit() {
+      cat <<EOF
+
+   Find the diffusion volumes and b-vectors of which gradient direction lies
+   the closest to the X, Y, Z orthogonal axes among those of highest gradients.
+ 
+   $CMD  <bvals> <bvecs>
+
+EOF
+    exit 1;
+}
+
+[ "$1" = "" ] && usage_exit
+
+bvals=$1
+bvecs=$2
+
+tmp=$$
+ts_bvecs=ts_bvecs_$tmp
+roundbvals=roundbvals_$tmp
+ts_bvals=ts_bvals_$tmp
+ts_maxbvecs=ts_maxbvecs_$tmp
+
+for i in `cat $bvals`; do v=`echo "(($i + 50)/100) * 100" | bc`; echo -n "$v " >> $roundbvals; done
+
+transposematrix $roundbvals $ts_bvals
+transposematrix $bvecs $ts_bvecs
+
+maxb=`awk -v max=0 '{if($1>max){max=$1}}END{print max}' $ts_bvals`
+numb=`cat $ts_bvals | wc -w`
+#echo $maxb
+#echo $numb
+
+i=1
+while [ $i -le $numb ] ; do
+ if [ "`cat $ts_bvals | awk 'NR=='$i' {print $1}'`" = "$maxb" ] ; then
+  cat $ts_bvecs | awk 'NR=='$i' {print NR,$1,$2,$3}' >> $ts_maxbvecs
+ fi
+ i=`expr $i + 1`
+done
+
+#Find vol closet to x
+maxx=`awk -v max=0 '{if($2>max){want=$1; max=$2}}END{print want,max}' $ts_maxbvecs`
+minx=`awk -v min=0 '{if($2<min){want=$1; min=$2}}END{print want,min}' $ts_maxbvecs`
+
+if [ "$(echo "`echo $minx | awk '{print $2}' | tr -d -` < `echo $maxx | awk '{print $2}' | tr -d -`" | bc)" -eq 1 ] ; then closex=`echo $maxx | awk '{print $1}'` ; else closex=`echo $minx | awk '{print $1}'` ; fi
+
+#Find vol closet to y
+maxy=`awk -v max=0 '{if($3>max){want=$1; max=$3}}END{print want,max}' $ts_maxbvecs`
+miny=`awk -v min=0 '{if($3<min){want=$1; min=$3}}END{print want,min}' $ts_maxbvecs`
+if [ "$(echo "`echo $miny | awk '{print $2}' | tr -d -` < `echo $maxy | awk '{print $2}' | tr -d -`" |bc)" -eq 1 ] ; then closey=`echo $maxy | awk '{print $1}'` ; else closey=`echo $miny | awk '{print $1}'` ; fi
+
+#Find vol closest to z
+maxz=`awk -v max=0 '{if($4>max){want=$1; max=$4}}END{print want,max}' $ts_maxbvecs`
+minz=`awk -v min=0 '{if($4<min){want=$1; min=$4}}END{print want,min}' $ts_maxbvecs`
+if [ "$(echo "`echo $minz | awk '{print $2}' | tr -d -` < `echo $maxz | awk '{print $2}' | tr -d -`" | bc)" -eq 1 ] ; then closez=`echo $maxz | awk '{print $1}'` ; else closez=`echo $minz | awk '{print $1}'` ; fi
+
+echo "Maximal b-value = $maxb"
+echo "Volume closest to X [ b-bvec ] = `cat $ts_bvecs | awk 'NR=='$closex' {printf "%d [ %f %f %f ]\n",NR-1,$1,$2,$3}'`"
+echo "Volume closest to Y [ b-bvec ] = `cat $ts_bvecs | awk 'NR=='$closey' {printf "%d [ %f %f %f ]\n",NR-1,$1,$2,$3}'`"
+echo "Volume closest to Z [ b-bvec ] = `cat $ts_bvecs | awk 'NR=='$closez' {printf "%d [ %f %f %f ]\n",NR-1,$1,$2,$3}'`"
+
+rm $ts_bvecs $roundbvals $ts_bvals $ts_maxbvecs
+
+exit 1;
+
+
+
+
+

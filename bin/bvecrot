@@ -1,0 +1,145 @@
+#! /bin/bash
+# Reorient bvecs corrected for motion
+
+usage_exit() {
+      cat <<EOF
+
+Correct b-vector file for subject movements
+
+   Usage: bvecrot <output dti_preprocess directory>
+
+    Output bvecs and other files will be in <dti_preprocess output directory>/dti_bvecrot
+
+EOF
+    exit 1;
+}
+
+[ "$1" = "" ] && usage_exit
+
+if [ "x$DTI_PREPROCESS" = "x" ] ; then 
+ echo "ERROR: cannot find environment variable DTI_PREPROCESS."; 
+ exit 1;
+else
+ source ${DTI_PREPROCESS}/etc/conf/dti_preprocess.conf
+fi
+CWD=`pwd`
+
+outdir=`make_absolute $1`
+dtidim4=`fslval ${outdir}/data dim4`
+
+mkdir -p ${outdir}/dti_preprocess/bvecrot
+if [ -e ${outdir}/dti_preprocess/bvecrot/ts_bvecrot ] ; then rm -Rf ${outdir}/dti_preprocess/bvecrot/ts_bvecrot; fi; 
+touch ${outdir}/dti_preprocess/bvecrot/ts_bvecrot
+zero=`round 0`; 
+pi=$(echo "scale=20; 4*a(1)" | bc -l)
+
+file=${outdir}/dti_preprocess/rotation.par
+
+i=0
+while [ $i -lt $dtidim4 ] ; do
+  j=`zeropad $i 4`
+  k=`expr $i + 1`;
+  v=`cat $file | awk 'NR=='$k' {printf "%f %f %f\n",$1*'$pi'/180,$2*'$pi'/180,$3*'$pi'/180}'`;
+  xR=`echo $v | awk '{print $1}'`;
+  yR=`echo $v | awk '{print $2}'`;
+  zR=`echo $v | awk '{print $3}'`; 
+  xUF=`cat ${tmpdir}/ts_bvec | awk 'NR=='$k' {print $1}'`;
+  yUF=`cat ${tmpdir}/ts_bvec | awk 'NR=='$k' {print $2}'`;
+  zUF=`cat ${tmpdir}/ts_bvec | awk 'NR=='$k' {print $3}'`;
+  x=`round $xUF`;
+  y=`round $yUF`;
+  z=`round $zUF`;
+
+  if [ $x = "$zero" ] && [ $y = "$zero" ] && [ $z = "$zero" ] ; then
+    echo "$x $y $z" >> ${outdir}/dti_preprocess/bvecrot/ts_bvecrot; 
+  else
+        #-----------Rotation around x-------------#
+        MagnitudeX=`echo "sqrt ( $y ^ 2 + $z ^2 )" | bc -l` ;
+        if [ $z != "$zero" ]; then 
+          DirectionX=`echo "a ( $y / $z )" | bc -l`; 
+        else 
+          DirectionX=`echo "$pi / 2" | bc -l`;
+        fi;
+        FactorX=0;
+        ReverseX=`echo "$DirectionX + $FactorX" | bc -l` ;
+        AxUF="$x"; 
+        AyUF=`echo "$MagnitudeX * ( s ($ReverseX) )" | bc -l` ;
+        AzUF=`echo "$MagnitudeX * ( c ($ReverseX) )" | bc -l` ;
+        Ax=`round $AxUF`;
+        Ay=`round $AyUF`;
+        Az=`round $AzUF`;
+        Rx=`round $x`;
+        Ry=`round $y`;
+        Rz=`round $z`;
+        if [ $Rx = $Ax ] && [ $Ry = $Ay ] && [ $Rz = $Az ] ; then 
+         FactorX=$FactorX ; 
+        else
+         FactorX=$pi;
+        fi;
+        NewDirectionX=`echo "$DirectionX + $FactorX + $xR" | bc -l` ;
+        x=$x; 
+        y=`echo "$MagnitudeX * ( s ($NewDirectionX) )" | bc -l` ;
+        z=`echo "$MagnitudeX * ( c ($NewDirectionX) )" | bc -l` ;
+        #-----------Rotation around y-------------#
+        MagnitudeY=`echo "sqrt ( $x ^ 2 + $z ^2 )" | bc -l` ;
+        if [ $x != "$zero" ]; then
+         DirectionY=`echo "a ( $z / $x )" | bc -l` ;
+        else
+         DirectionY=`echo "$pi / 2" | bc -l`;
+        fi;
+        FactorY=0;
+        ReverseY=`echo "$DirectionY + $FactorY" | bc -l` ;
+        AxUF=`echo "$MagnitudeY * ( c ($ReverseY) )" | bc -l`;
+        AyUF=$y;
+        AzUF=`echo "$MagnitudeY * ( s ($ReverseY) )" | bc -l` ;
+        Ax=`round $AxUF`;
+        Ay=`round $AyUF`;
+        Az=`round $AzUF`;
+        Rx=`round $x`;
+        Ry=`round $y`;
+        Rz=`round $z`;
+        if [ $Rx = $Ax ] && [ $Ry = $Ay ] && [ $Rz = $Az ] ; then
+         FactorY=$FactorY ;
+        else FactorY=$pi;
+        fi;
+        NewDirectionY=`echo "$DirectionY + $FactorY + $yR" | bc -l` ;
+        x=`echo "$MagnitudeY * ( c ($NewDirectionY) )" | bc -l`;
+        y=$y;
+        z=`echo "$MagnitudeY * ( s ($NewDirectionY) )" | bc -l` ;
+        #-----------Rotation around z-------------#
+        MagnitudeZ=`echo "sqrt ( $x ^ 2 + $y ^2 )" | bc -l` ;
+        if [ $x != "$zero" ] ; then
+         DirectionZ=`echo "a ( $y / $x )" | bc -l` ;
+        else
+         DirectionZ=`echo "$pi / 2" | bc -l`;
+        fi;
+        FactorZ=0;
+        ReverseZ=`echo "$DirectionZ + $FactorZ" | bc -l` ;
+        AxUF=`echo "$MagnitudeZ * ( c ($ReverseZ) )" | bc -l` ;
+        AyUF=`echo "$MagnitudeZ * ( s ($ReverseZ) )" | bc -l` ;
+        AzUF=$z;
+        Ax=`round $AxUF`;
+        Ay=`round $AyUF`;
+        Az=`round $AzUF`;
+        Rx=`round $x`;
+        Ry=`round $y`;
+        Rz=`round $z`;
+        if [ $Rx = $Ax ] && [ $Ry = $Ay ] && [ $Rz = $Az ] ; then
+         FactorZ=$FactorZ ;
+        else FactorZ=$pi;
+        fi;
+        NewDirectionZ=`echo "$DirectionZ + $FactorZ + $zR" | bc -l`;
+        x=`echo "$MagnitudeZ * ( c ($NewDirectionZ) )" | bc -l`;
+        y=`echo "$MagnitudeZ * ( s ($NewDirectionZ) )" | bc -l`;
+        z=$z;
+        echo "`round $x` `round $y` `round $z`" >> ${outdir}/dti_preprocess/bvecrot/ts_bvecrot
+    fi
+  i=`expr $i + 1`
+done
+
+mkdir -p  $outdir/dti_preprocess/bvecrot
+transposematrix ${outdir}/dti_preprocess/bvecrot/ts_bvecrot  $outdir/dti_preprocess/bvecrot/bvecs
+cp $outdir/bvals  $outdir/dti_preprocess/bvecrot/
+
+exit 0;
+

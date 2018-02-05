@@ -1,0 +1,65 @@
+#! /bin/bash 
+# Convert Siemens phase difference (dph) image to fieldmap (rad/s)
+# The script assumes that the data was obtained by using the stock
+# sequence, "gre_field_mapping".
+# Written by Takuya Hayashi (takuya.hayashi@riken.jp, takuya.hayashi@gmail.com), RIKEN Cencer for Life Science Technologies, Kobe, JP
+# Ver. 1.2, Fri Dec 22 17:42:48 JST 2015
+
+usage_exit() {
+      cat <<EOF
+
+        Convert Siemens phase difference image to fieldmap in units of rad/sec
+
+        Ver. 1.2
+
+        Usage: $0 inp.img out.img  deltaTE(in ms) [option]
+
+        Option: -g <N> : gaussian filter with sigma N (in mm) (default, N=1)
+                -d: despike filter
+                -m: median filter
+
+EOF
+ exit 1;
+}
+
+[ "$3" = "" ] && usage_exit
+
+img=$1
+out=`remove_ext $2`
+tediff=$3
+
+if [ ! -e $img ] ; then
+	echo "ERROR: cannot find $img"
+	exit 1;   
+fi
+
+m=`fslstats $img -R | awk '{print $1}'`
+M=`fslstats $img -R | awk '{print $2}'`
+sub=`echo "($m + $M ) / 2" | bc -l`
+div=`echo "(-1*$m + $M) / 2" | bc -l`
+pi=3.1415926535897
+
+echo "Original value range: $m $M"
+fslmaths $img -sub $sub -div $div -mul $pi $out -odt float
+echo "Scaled to radian: `fslstats $out -R`"
+fslmaths $out -mul 1000 -div $tediff $out -odt float
+echo "Changed to radian/sec: `fslstats $out -R`"
+
+if [ "$4" = "-m" ] ; then
+	f="median"; suff="m"
+	fugue --loadfmap=${out} -m --savefmap=${out}_${suff}
+elif [ "$4" = "-d" ] ; then
+	f="2D-despike"; suff="d"
+	fugue --loadfmap=${out} --despike --savefmap=${out}_${suff}
+elif [ "$4" = "-g" ] ; then
+	if [ "$5" = "" ] ; then echo "Error: cannot find filter size"; exit 1; fi
+	f="3D-Gaussian"; suff="s$5" 
+	fugue --loadfmap=${out} -s $5 --savefmap=${out}_${suff}
+else
+	f="3D-Gaussian"; suff="s1"
+	fugue --loadfmap=${out} -s 1 --savefmap=${out}_${suff}
+fi
+
+echo "Filtered with $f filter, ranging: `fslstats ${out}_${suff} -R`"
+
+exit 0;

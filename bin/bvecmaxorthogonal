@@ -1,0 +1,44 @@
+#! /bin/bash
+# Find the diffusion volumes and b-vectors of which gradient direction lies the closet to the X, Y, Z orthogonal axes among those of highest gradients.
+
+
+bvecmaxorthogonal
+
+tmp=$$
+ts_bvecs=ts_bvecs_$tmp
+roundbvals=roundbvals_$tmp
+ts_bvals=ts_bvals_$tmp
+ts_maxbvecs=ts_maxbvecs_$tmp
+
+for i in `cat $bvals`; do v=`echo "(($i + 50)/100) * 100" | bc`; echo -n "$v " >> $roundbvals; done
+
+transposematrix $roundbvals $ts_bvals
+transposematrix bvecs $ts_bvecs
+
+maxb=`awk -v max=0 '{if($2>max){max=$2}}END{print max}' $ts_bvals`
+
+numb=`cat ts_$roundbvals | wc -w`
+maxbvol=""
+i=1
+while [ $i -le $numb ] ; do
+ if [ `cat $ts_bvals | awk 'NR==\'$i\' {print $1}` -eq $maxb ] ; then
+  maxbvol="$maxbvol $i"
+  cat $ts_bvecs | awk 'NR=='$i' {print NR-1,$1,$2,$3}' >> $ts_maxbvecs
+ fi
+done
+
+#Find x
+maxx=`awk -v max=0 '{if($2>max){want=NR; max=$2}}END{print want,max}' $ts_maxbvecs`
+minx=`awk -v min=0 '{if($2<min){want=NR; min=$2}}END{print want,min}' $ts_maxbvecs`
+if [ `echo "$minx | awk '{print $2}' | tr -d -"` -lt `echo $maxx | awk '{print $2}' | tr -d -"` ] ; then maxx=$maxx ; else maxx=$minx ; fi
+
+#Find maxy
+maxy=`awk -v max=0 '{if($3>max){want=NR; max=$3}}END{print want,max}' $ts_maxbvecs`
+miny=`awk -v min=0 '{if($3<min){want=NR; min=$3}}END{print want,min}' $ts_maxbvecs`
+if [ `echo "$miny | awk '{print $2}' | tr -d -"` -lt `echo $maxy | awk '{print $2}' | tr -d -"` ] ; then maxy=$maxy ; else maxy=$miny ; fi
+
+
+
+
+
+

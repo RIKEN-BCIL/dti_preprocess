@@ -1,0 +1,77 @@
+#!/bin/bash
+# a script for 3D plot of b-vector
+# Takuya Hayashi, RIKEN CLST, Japan
+# mailto: takuya.hayashi@riken.jp
+
+VERSION=0.2 # released at Wed, 27 May 2015 11:23:19 +0900
+
+
+CMD=`echo $0 | sed -e 's/^\(.*\)\/\([^\/]*\)/\2/'`;
+inparg="$@";
+
+usage_exit() {
+      cat <<EOF
+
+  3D plot of b-vector
+
+  Version $VERSION
+
+  Usage:
+	${CMD} <bvec> [-f]
+
+           -f : export 3d animation gif file (<bvec>_3D.gif)
+
+EOF
+    exit 1;
+}
+
+[ "$1" = "" ] && usage_exit
+
+transposematrix (){
+    nl=`cat $1 | awk 'BEGIN {N=0}{N++} END{print N}'`
+    nw=`cat $1 | awk 'NR==1 {print NF}'`
+    if [ -e $2 ] ; then rm -f $2; fi
+    touch $2
+    i=1
+    while [ $i -le $nw ] ; do
+   	j=1
+   	while [ $j -le $nl ] ; do
+      	v=`cat $1 | awk 'NR=='$j' {printf "%f ",  $'$i'}'`
+      	echo -n "$v " >> $2
+      	j=`expr $j + 1`
+   	done
+    echo "" >> $2
+    i=`expr $i + 1`
+    done
+}
+
+tmp=tmp_$$
+transposematrix $1 $tmp
+
+if [ ! "$2" = "-f" ] ; then
+ gnuplot -e "set terminal wxt;set view equal xyz; set ticslevel 0; unset key; splot '$tmp' using 3:2:1 with points palette pointsize 2 pointtype 7; pause -1"
+else
+ gp=${tmp}.gp
+ echo -e "reset\nclear" > ${gp}
+ echo "unset key" >> ${gp}
+ echo "set grid" >> ${gp}
+ echo "set xlabel 'x'" >> ${gp}
+ echo "set ylabel 'y'" >> ${gp}
+ echo "set zlabel 'z'" >> ${gp}
+ echo "set ticslevel 0" >> $gp
+ echo "set term png" >> ${gp}
+ i=30; while [ $i -le 40 ] ; do
+  echo "set view 60,${i},1,1.5" >> ${gp}
+  echo "set output '3dplotbvec_`printf %03d ${i}`.png'" >> ${gp}
+  echo "splot '$tmp' using 3:2:1 with points palette pointsize 2 pointtype 7" >> ${gp}
+  i=`expr $i + 1`
+ done
+ gnuplot $gp
+ for i in 3dplotbvec_???.png; do convert $i `echo $i | sed -e 's/png/gif/'`;done
+ whirlgif -o ${1}_3d.gif -loop 0 -time 50 3dplotbvec_0??.gif 3dplotbvec_040.gif 3dplotbvec_039.gif 3dplotbvec_038.gif 3dplotbvec_037.gif 3dplotbvec_036.gif 3dplotbvec_035.gif 3dplotbvec_034.gif 3dplotbvec_033.gif 3dplotbvec_032.gif 3dplotbvec_031.gif 3dplotbvec_030.gif
+ rm -rf $tmp $gp
+ rm 3dplotbvec_???.???
+fi
+
+exit 0;
+

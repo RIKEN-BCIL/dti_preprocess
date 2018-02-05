@@ -1,0 +1,140 @@
+#! /bin/bash
+# Apply HCP registration to diffusion data
+# Takuya Hayashi
+
+CMD=`echo $0 | sed -e 's/^\(.*\)\/\([^\/]*\)/\2/'`
+VERSION=1.1 # Mon, 26 Oct 2015 11:07:16 +0900
+
+usage_exit() {
+      cat <<EOF
+
+  Registrate 'dti_preprocess'ed DTI data to HCP-preprocessed data.
+
+   $CMD  <dti_preprocess directory> <subject ID in HCP pipeline directory> [outdir]
+
+       By default, <outdir> is <dti_preprocess directory>/struc/Diffusion
+
+EOF
+    exit 1;
+}
+
+[ "$1" = "" ] && usage_exit
+
+if [ "x$DTI_PREPROCESS" = "x" ] ; then 
+ echo "ERROR: cannot find environment variable DTI_PREPROCESS."; 
+ exit 1;
+else
+ source ${DTI_PREPROCESS}/etc/conf/dti_preprocess.conf
+fi
+
+. $HCPEnvironmentScript >/dev/null 2>&1
+
+DiffData=$1
+subj=`make_absolute $2`
+Subject=`basename $subj`
+Study=`dirname $subj`
+if [ "$3" = "" ] ; then
+ outdirT1w=$DiffData/struc/Diffusion
+else
+ outdirT1w=$3
+fi
+T1wFolder=$Study/$Subject/T1w
+T1wImage=$Study/$Subject/T1w/T1w_acpc
+T1wRestoreImage=$Study/$Subject/T1w/T1w_acpc_dc_restore
+T1wRestoreImageBrain=$Study/$Subject/T1w/T1w_acpc_dc_restore_brain
+BiasField=$Study/$Subject/T1w/BiasField_acpc_dc
+FreeSurferBrainMask=$Study/$Subject/T1w/brainmask_fs
+RegOutput=$DiffData/reg/Scout2T1w
+QAImage=$DiffData/reg/T1wMulEPI
+DegreesOfFreedom=6
+GdFlag=0
+
+DiffRes=`fslval $DiffData/data pixdim1`
+DiffRes=`printf "%0.2f" ${DiffRes}`
+
+mkdir -p $DiffData/reg
+mkdir -p $DiffData/struc
+mkdir -p $outdirT1w
+
+if [ "$SPECIES" = "Human" ] || [ "$SPECIES" = "" ] ; then 
+  command=DiffusionToStructural.sh
+else
+  command=DiffusionToStructural_RIKEN.sh
+fi
+
+echo "Running Diffusion to Structural Registration"
+	${runcmd} ${HCPPIPEDIR_dMRI}/${command} \
+		--t1folder="${T1wFolder}" \
+		--subject="${Subject}" \
+		--workingdir="${DiffData}/reg" \
+		--datadiffdir="${DiffData}" \
+		--t1="${T1wImage}" \
+		--t1restore="${T1wRestoreImage}" \
+		--t1restorebrain="${T1wRestoreImageBrain}" \
+		--biasfield="${BiasField}" \
+		--brainmask="${FreeSurferBrainMask}" \
+		--datadiffT1wdir="${outdirT1w}" \
+		--regoutput="${RegOutput}" \
+		--QAimage="${QAImage}" \
+		--dof="${DegreesOfFreedom}" \
+		--gdflag=${GdFlag} \
+		--diffresol=${DiffRes}
+
+
+cp $Study/$Subject/T1w/*nii.gz $DiffData/struc/ 
+cp -r $Study/$Subject/T1w/Native $DiffData/struc/
+
+# register dti to struc acpc space, rotate bvec, calculate DTI and perform QC
+
+flirt -in $DiffData/struc/wmparc -ref $outdirT1w/nodif_brain_mask -applyisoxfm $DiffRes -interp nearestneighbour -o $outdirT1w/wmparc
+flirt -in $DiffData/struc/ribbon -ref $outdirT1w/nodif_brain_mask -applyisoxfm $DiffRes -interp nearestneighbour -o $outdirT1w/ribbon
+fslmaths $outdirT1w/ribbon -thr 3 -uthr 3 -bin $outdirT1w/ribbon_L
+fslmaths $outdirT1w/ribbon -thr 42 -uthr 42 -bin $outdirT1w/ribbon_R
+fslmaths $outdirT1w/wmparc -thr 251 -uthr 255 -bin $outdirT1w/callosum
+fslmaths $outdirT1w/ribbon_L -mul 2 -add $outdirT1w/ribbon_R -mul 2 -add $outdirT1w/callosum $outdirT1w/roi
+
+bvecclosestorthogonal $outdirT1w/bvals $outdirT1w/bvecs > $outdirT1w/bvecclosestorthogonal.txt
+
+flirt -in $DiffData/dti_preprocess/data_UD_tued_snr.nii.gz -ref $outdirT1w/nodif_brain_mask.nii.gz  -applyxfm -init $DiffData/reg/diff2str.mat -o $outdirT1w/snr
+
+x=`cat  $outdirT1w/bvecclosestorthogonal.txt | awk '{printf "%d ", $9}' | awk  '{print $2}'`
+y=`cat  $outdirT1w/bvecclosestorthogonal.txt | awk '{printf "%d ", $9}' | awk  '{print $3}'`
+z=`cat  $outdirT1w/bvecclosestorthogonal.txt | awk '{printf "%d ", $9}' | awk  '{print $4}'`
+
+fslroi $outdirT1w/data $outdirT1w/nodif 0 1
+fslmaths $outdirT1w/nodif -mas $outdirT1w/nodif_brain_mask $outdirT1w/nodif_brain
+fslroi $outdirT1w/data $outdirT1w/dwiclosex $x 1
+fslroi $outdirT1w/data $outdirT1w/dwiclosey $y 1
+fslroi $outdirT1w/data $outdirT1w/dwiclosez $z 1
+
+nii2gif $outdirT1w/snr $DiffData/report/snr.gif -l $lut -s 3
+nii2gif $outdirT1w/roi $DiffData/report/roi.gif -l $lut -s 3
+pngappend $DiffData/report/snr.gif - $DiffData/report/roi.gif  $DiffData/report/snr+roi.gif
+
+echo "<BR><B>QC in ACPC space </B><BR><BR>"  >> $DiffData/report/stats.html
+echo "<I>SNR and ROIs in ACPC space </I><BR>"  >> $DiffData/report/stats.html
+echo "<IMG src=./snr+roi.gif  width=300 height=200 border=0><BR>" >> $DiffData/report/stats.html
+echo "SNR in right cortical ribbon (mean,sd) = `fslstats $outdirT1w/snr -k $outdirT1w/ribbon_R -m -s`<BR>"  >> $DiffData/report/stats.html
+echo "SNR in left cortical ribbon (mean,sd) = `fslstats $outdirT1w/snr -k $outdirT1w/ribbon_L -m -s`<BR>"  >> $DiffData/report/stats.html
+echo "SNR in callosum (mean,sd) = `fslstats $outdirT1w/snr -k $outdirT1w/callosum -m -s`<BR><BR>"  >> $DiffData/report/stats.html
+
+echo "<I>Signal intensity in DWI</I><BR>"  >> $DiffData/report/stats.html
+echo "B0 signal in callosum (mean,sd) = `fslstats $outdirT1w/nodif -k $outdirT1w/callosum -m -s`<BR>"  >> $DiffData/report/stats.html
+cat $outdirT1w/bvecclosestorthogonal.txt | awk '{printf "%s <BR>",$0}'  >> $DiffData/report/stats.html
+echo "Diffusion signal closest to x in callosum (mean,sd) = `fslstats $outdirT1w/dwiclosex -k $outdirT1w/callosum -m -s`<BR>"  >> $DiffData/report/stats.html
+echo "Diffusion signal closest to y in callosum (mean,sd) = `fslstats $outdirT1w/dwiclosey -k $outdirT1w/callosum -m -s`<BR>"  >> $DiffData/report/stats.html
+echo "Diffusion signal closest to z in callosum (mean,sd) = `fslstats $outdirT1w/dwiclosez -k $outdirT1w/callosum -m -s`<BR>"  >> $DiffData/report/stats.html
+
+dtifit -k $outdirT1w/data -m $outdirT1w/nodif_brain_mask -b $outdirT1w/bvals -r $outdirT1w/bvecs -o $outdirT1w/dti
+nii2gif $outdirT1w/dti_FA $DiffData/report/dti_FA_acpc.gif -s 3
+flirt -in $DiffData/struc/T1w_acpc_dc_restore_brain -ref $outdirT1w/nodif -applyisoxfm $DiffRes -o $outdirT1w/T1w_acpc_dc_restore_brain -interp spline
+nii2gif $outdirT1w/T1w_acpc_dc_restore_brain $DiffData/report/T1w_acpc_dc_restore_brain.gif -s 3
+flirt -in $DiffData/struc/T2w_acpc_dc_restore_brain -ref $outdirT1w/nodif -applyisoxfm $DiffRes -o $outdirT1w/T2w_acpc_dc_restore_brain -interp spline
+nii2gif $outdirT1w/T2w_acpc_dc_restore_brain $DiffData/report/T2w_acpc_dc_restore_brain.gif -s 3
+whirlgif -o $DiffData/report/FA+T1w+T2w_movie.gif -loop -time 50 $DiffData/report/dti_FA_acpc.gif $DiffData/report/T1w_acpc_dc_restore_brain.gif $DiffData/report/T2w_acpc_dc_restore_brain.gif
+echo "<BR><B>QC in ACPC space</B><BR><BR>"  >> $DiffData/report.html
+echo "<I>Registration of DTI FA, T1w and T2w images in ACPC space</I><BR>"  >> $DiffData/report.html
+echo "<IMG src=./report/FA+T1w+T2w_movie.gif  width=300 height=100 border=0><BR>" >> $DiffData/report.html
+
+
+
