@@ -3,7 +3,7 @@ Unwarping of B0 inhomogeneity distortion, correction of eddy current distortion 
 
 ## Installation
 
-Before installation of dti_preprocess, you need to install FSL (>5.0). You also require [gdcmdump](http://gdcm.sourceforge.net/html/gdcmdump.html) and [HCP pipleine](https://github.com/Washington-University/Pipelines) for some scripts (getdwelltime and regdtiprep2hcp).
+Before installation of dti_preprocess, you need to install FSL (>5.0). You also require [gdcmdump](http://gdcm.sourceforge.net/html/gdcmdump.html) and [HCP pipleine](https://github.com/Washington-University/Pipelines) for scripts, getdwelltime and regdtiprep2hcp, respectively.
 
 1. After uncompressing the downloaded dti_preprocess.zip, move dti_preprocess into /usr/local 
 
