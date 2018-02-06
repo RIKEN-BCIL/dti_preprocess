@@ -12,7 +12,7 @@ usage_exit() {
 
    $CMD  <dti_preprocess directory> <subject ID in HCP pipeline directory> [outdir]
 
-       By default, <outdir> is <dti_preprocess directory>/struc/Diffusion
+       By default, <outdir> is <subject ID directory>/T1w/Diffusion
 
 EOF
     exit 1;
@@ -27,14 +27,14 @@ else
  source ${DTI_PREPROCESS}/etc/conf/dti_preprocess.conf
 fi
 
-. $HCPEnvironmentScript >/dev/null 2>&1
+source $HCPEnvironmentScript >/dev/null 2>&1
 
 DiffData=$1
 subj=`make_absolute $2`
 Subject=`basename $subj`
 Study=`dirname $subj`
 if [ "$3" = "" ] ; then
- outdirT1w=$DiffData/struc/Diffusion
+ outdirT1w=$Study/$Subject/T1w/Diffusion
 else
  outdirT1w=$3
 fi
@@ -82,7 +82,7 @@ echo "Running Diffusion to Structural Registration"
 
 
 cp $Study/$Subject/T1w/*nii.gz $DiffData/struc/ 
-cp -r $Study/$Subject/T1w/Native $DiffData/struc/
+#cp -r $Study/$Subject/T1w/Native $DiffData/struc/
 
 # register dti to struc acpc space, rotate bvec, calculate DTI and perform QC
 

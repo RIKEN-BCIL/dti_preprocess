@@ -3,6 +3,13 @@
 # Takuya Hayashi, CLST RIKEN (takuya.hayashi@riken.jp or takuya.hayashi@
 #
 
+usage () {
+echo " Usage: $0 <bvals>"
+exit 1;
+}
+
+[ "$1" = "" ] && usage
+
 in=$1
 tmp=tmp_$$
 
@@ -19,7 +26,8 @@ set term png #output terminal and file
 set output "${in}_histogram.png"
 set xrange [min:max]
 set yrange [0:]
-set offset graph 0.05,0.05,0.05,0.0
+#set offset graph 0.05,0.05,0.05,0.0
+set offset 0.05,0.05,0.05,0.0
 #set xtics min,(max-min)/5,max
 set xtics min,1000,max
 set boxwidth width*0.9
@@ -32,7 +40,7 @@ plot '${tmp}_bvals' u (hist(\$1,width)):(1.0) smooth freq w boxes lc rgb"blue" n
 EOF
 
 gnuplot $tmp
-rm $tmp ${tmp}_bvals
+#rm $tmp ${tmp}_bvals
 
 exit 0;
 

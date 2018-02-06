@@ -67,7 +67,6 @@ while getopts Ll:s:i:e:tnux:y:z:aT: OPT
 done;
 fi
 
-if [ `imtest $in` -eq 0 ] ; then echo "Error: invalid image $in"; exit 0; fi
 tmp=tmp_$$
 
 if [ "`fslval $in dim4`" -eq 1 ] ; then

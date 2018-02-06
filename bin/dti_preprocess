@@ -312,8 +312,8 @@ if [ $FC = 1 ] ; then
  echo "<IMG src= "./fmap+mag.gif" width="300" height="100" border="0"><BR><BR>" >> $reportdir/fieldmap.html
  T imln $tmpdir/FM_UD_fmap fields_rads
  T imln $tmpdir/FM_UD_fmap_mag fields_mag
- T fslstats $tmpdir/ED_UD_shift -k $tmpdir/FM_UD_fmap_mag_brain_mask -P 1 -P 99
- V=(`fslstats $tmpdir/ED_UD_shift -k $tmpdir/FM_UD_fmap_mag_brain_mask -P 1 -P 99`)
+ T fslstats $tmpdir/ED_UD_shift -k $tmpdir/ED_UD_fmap_mag_brain_mask -P 1 -P 99
+ V=(`fslstats $tmpdir/ED_UD_shift -k $tmpdir/ED_UD_fmap_mag_brain_mask -P 1 -P 99`)
  T fslmaths $tmpdir/ED_UD_shift -mul -1 grot
  T overlay 1 0 $tmpdir/ED_UD_fmap_mag_brain -a $tmpdir/ED_UD_shift 0 ${V[1]} grot 0 `echo ${V[0]} | tr -d -` grot
  T nii2gif grot $reportdir/ED_UD_shift+mag.gif -s 3
