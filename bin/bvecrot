@@ -16,8 +16,8 @@ EOF
 
 [ "$1" = "" ] && usage_exit
 
-if [ "x$DTI_PREPROCESS" = "x" ] ; then 
- echo "ERROR: cannot find environment variable DTI_PREPROCESS."; 
+if [ "x$DTI_PREPROCESS" = "x" ] ; then
+ echo "ERROR: cannot find environment variable DTI_PREPROCESS.";
  exit 1;
 else
  source ${DTI_PREPROCESS}/etc/conf/dti_preprocess.conf
@@ -27,10 +27,12 @@ CWD=`pwd`
 outdir=`make_absolute $1`
 dtidim4=`fslval ${outdir}/data dim4`
 
+transposematrix $outdir/bvecs ${outdir}/dti_preprocess/ts_bvec
+
 mkdir -p ${outdir}/dti_preprocess/bvecrot
-if [ -e ${outdir}/dti_preprocess/bvecrot/ts_bvecrot ] ; then rm -Rf ${outdir}/dti_preprocess/bvecrot/ts_bvecrot; fi; 
+if [ -e ${outdir}/dti_preprocess/bvecrot/ts_bvecrot ] ; then rm -Rf ${outdir}/dti_preprocess/bvecrot/ts_bvecrot; fi;
 touch ${outdir}/dti_preprocess/bvecrot/ts_bvecrot
-zero=`round 0`; 
+zero=`round 0`;
 pi=$(echo "scale=20; 4*a(1)" | bc -l)
 
 file=${outdir}/dti_preprocess/rotation.par
@@ -42,27 +44,27 @@ while [ $i -lt $dtidim4 ] ; do
   v=`cat $file | awk 'NR=='$k' {printf "%f %f %f\n",$1*'$pi'/180,$2*'$pi'/180,$3*'$pi'/180}'`;
   xR=`echo $v | awk '{print $1}'`;
   yR=`echo $v | awk '{print $2}'`;
-  zR=`echo $v | awk '{print $3}'`; 
-  xUF=`cat ${tmpdir}/ts_bvec | awk 'NR=='$k' {print $1}'`;
-  yUF=`cat ${tmpdir}/ts_bvec | awk 'NR=='$k' {print $2}'`;
-  zUF=`cat ${tmpdir}/ts_bvec | awk 'NR=='$k' {print $3}'`;
+  zR=`echo $v | awk '{print $3}'`;
+  xUF=`cat ${outdir}/dti_preprocess/ts_bvec | awk 'NR=='$k' {print $1}'`;
+  yUF=`cat ${outdir}/dti_preprocess/ts_bvec | awk 'NR=='$k' {print $2}'`;
+  zUF=`cat ${outdir}/dti_preprocess/ts_bvec | awk 'NR=='$k' {print $3}'`;
   x=`round $xUF`;
   y=`round $yUF`;
   z=`round $zUF`;
 
   if [ $x = "$zero" ] && [ $y = "$zero" ] && [ $z = "$zero" ] ; then
-    echo "$x $y $z" >> ${outdir}/dti_preprocess/bvecrot/ts_bvecrot; 
+    echo "$x $y $z" >> ${outdir}/dti_preprocess/bvecrot/ts_bvecrot;
   else
         #-----------Rotation around x-------------#
         MagnitudeX=`echo "sqrt ( $y ^ 2 + $z ^2 )" | bc -l` ;
-        if [ $z != "$zero" ]; then 
-          DirectionX=`echo "a ( $y / $z )" | bc -l`; 
-        else 
+        if [ $z != "$zero" ]; then
+          DirectionX=`echo "a ( $y / $z )" | bc -l`;
+        else
           DirectionX=`echo "$pi / 2" | bc -l`;
         fi;
         FactorX=0;
         ReverseX=`echo "$DirectionX + $FactorX" | bc -l` ;
-        AxUF="$x"; 
+        AxUF="$x";
         AyUF=`echo "$MagnitudeX * ( s ($ReverseX) )" | bc -l` ;
         AzUF=`echo "$MagnitudeX * ( c ($ReverseX) )" | bc -l` ;
         Ax=`round $AxUF`;
@@ -71,13 +73,13 @@ while [ $i -lt $dtidim4 ] ; do
         Rx=`round $x`;
         Ry=`round $y`;
         Rz=`round $z`;
-        if [ $Rx = $Ax ] && [ $Ry = $Ay ] && [ $Rz = $Az ] ; then 
-         FactorX=$FactorX ; 
+        if [ $Rx = $Ax ] && [ $Ry = $Ay ] && [ $Rz = $Az ] ; then
+         FactorX=$FactorX ;
         else
          FactorX=$pi;
         fi;
         NewDirectionX=`echo "$DirectionX + $FactorX + $xR" | bc -l` ;
-        x=$x; 
+        x=$x;
         y=`echo "$MagnitudeX * ( s ($NewDirectionX) )" | bc -l` ;
         z=`echo "$MagnitudeX * ( c ($NewDirectionX) )" | bc -l` ;
         #-----------Rotation around y-------------#
@@ -142,4 +144,3 @@ transposematrix ${outdir}/dti_preprocess/bvecrot/ts_bvecrot  $outdir/dti_preproc
 cp $outdir/bvals  $outdir/dti_preprocess/bvecrot/
 
 exit 0;
-
