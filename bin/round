@@ -6,7 +6,10 @@ echo "digit = 7 by default"
 exit 1;
 }
 [ "$1" = "" ] && Usage_exit
-digit=$2
-if [ "$digit" = "" ] ; then digit=7;fi
-LANG=C printf "%1.${digit}f" $1
+if [ "$2" = "" ] ; then
+	digit=7
+else
+	digit=$2
+fi
+echo $1 | awk '{printf "%'$digit'.'$digit'f",$1+0}'
 exit 0;
