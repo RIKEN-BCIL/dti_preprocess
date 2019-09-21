@@ -1,6 +1,6 @@
 #!/bin/bash
 # a script for 3D plot of b-vector
-# Takuya Hayashi, RIKEN CLST, Japan
+# Takuya Hayashi, RIKEN-BCIL, Japan
 # mailto: takuya.hayashi@riken.jp
 
 VERSION=0.2 # released at Wed, 27 May 2015 11:23:19 +0900
@@ -74,4 +74,3 @@ else
 fi
 
 exit 0;
-

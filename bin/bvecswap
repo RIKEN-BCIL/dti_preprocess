@@ -1,6 +1,6 @@
 #! /bin/sh
 # swap b-vector files
-# written by Takuya hayashi, CMIS (takuya.hayashi@riken.jp)
+# written by Takuya hayashi, RIKEN-BCIL (takuya.hayashi@riken.jp)
 
 Usage () {
  echo ""
@@ -21,7 +21,7 @@ x=`cat $1 | awk '{if (NR==1) print}'`
 y=`cat $1 | awk '{if (NR==2) print}'`
 z=`cat $1 | awk '{if (NR==3) print}'`
 if [ -e $5 ]; then
- rm $5 
+ rm $5
 fi
 
 touch $5
@@ -36,9 +36,9 @@ for i in $2 $3 $4; do
  elif [ "$i" = "x" ] ; then
     echo $x >> $5
  elif [ "$i" = "y" ] ; then
-    echo $y >> $5 
+    echo $y >> $5
  elif [ "$i" = "z" ] ; then
-    echo $z >> $5 
+    echo $z >> $5
  fi;
 done
 

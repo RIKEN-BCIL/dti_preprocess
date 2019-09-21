@@ -1,6 +1,6 @@
 #! /bin/bash
 # Apply HCP registration to diffusion data
-# Takuya Hayashi
+# Takuya Hayashi, RIKEN-BCIL
 
 CMD=`echo $0 | sed -e 's/^\(.*\)\/\([^\/]*\)/\2/'`
 VERSION=1.1 # Mon, 26 Oct 2015 11:07:16 +0900

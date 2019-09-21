@@ -1,8 +1,8 @@
-#! /bin/bash 
+#! /bin/bash
 # Convert Siemens phase difference (dph) image to fieldmap (rad/s)
 # The script assumes that the data was obtained by using the stock
 # sequence, "gre_field_mapping".
-# Written by Takuya Hayashi (takuya.hayashi@riken.jp, takuya.hayashi@gmail.com), RIKEN Cencer for Life Science Technologies, Kobe, JP
+# Written by Takuya Hayashi (takuya.hayashi@riken.jp, takuya.hayashi@gmail.com), RIKEN-BCIL, Kobe, JP
 # Ver. 1.2, Fri Dec 22 17:42:48 JST 2015
 
 usage_exit() {
@@ -30,7 +30,7 @@ tediff=$3
 
 if [ ! -e $img ] ; then
 	echo "ERROR: cannot find $img"
-	exit 1;   
+	exit 1;
 fi
 
 m=`fslstats $img -R | awk '{print $1}'`
@@ -53,7 +53,7 @@ elif [ "$4" = "-d" ] ; then
 	fugue --loadfmap=${out} --despike --savefmap=${out}_${suff}
 elif [ "$4" = "-g" ] ; then
 	if [ "$5" = "" ] ; then echo "Error: cannot find filter size"; exit 1; fi
-	f="3D-Gaussian"; suff="s$5" 
+	f="3D-Gaussian"; suff="s$5"
 	fugue --loadfmap=${out} -s $5 --savefmap=${out}_${suff}
 else
 	f="3D-Gaussian"; suff="s1"

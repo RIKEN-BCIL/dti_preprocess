@@ -1,6 +1,6 @@
 #! /bin/sh
 # make histgram of b-value
-# Takuya Hayashi, CLST RIKEN (takuya.hayashi@riken.jp or takuya.hayashi@
+# Takuya Hayashi, BIKEN-BCIL (takuya.hayashi@riken.jp or takuya.hayashi@
 #
 
 usage () {
@@ -43,4 +43,3 @@ gnuplot $tmp
 #rm $tmp ${tmp}_bvals
 
 exit 0;
-
