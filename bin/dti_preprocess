@@ -9,8 +9,8 @@ CMD=`echo $0 | sed -e 's/^\(.*\)\/\([^\/]*\)/\2/'`
 inparg="$@";
 CWD=`pwd`
 
-if [ "x$DTI_PREPROCESS" = "x" ] ; then 
- echo "ERROR: cannot find environment variable DTI_PREPROCESS."; 
+if [ "x$DTI_PREPROCESS" = "x" ] ; then
+ echo "ERROR: cannot find environment variable DTI_PREPROCESS.";
  exit 1;
 else
  source ${DTI_PREPROCESS}/etc/conf/dti_preprocess.conf
@@ -23,7 +23,7 @@ fi
 
 while getopts k:t:f:m:b:r:u:D:M:o:FE:l4nUK:B:R:pwcH:N:vh OPT
  do
- case "$OPT" in 
+ case "$OPT" in
    "k" ) dti="`make_absolute $OPTARG`";;
    "t" ) esp="`echo "scale=5; $OPTARG/1000" | bc`";;
    "f" ) dph="`make_absolute $OPTARG`";;
@@ -32,7 +32,7 @@ while getopts k:t:f:m:b:r:u:D:M:o:FE:l4nUK:B:R:pwcH:N:vh OPT
    "r" ) bvec="`make_absolute $OPTARG`";;
    "u" ) ud="$OPTARG";;
    "D" ) maskd="`make_absolute $OPTARG`";;
-   "M" ) maskf="`make_absolute $OPTARG`";;   
+   "M" ) maskf="`make_absolute $OPTARG`";;
    "o" ) outdir="`make_absolute $OPTARG`";;
    "F" ) FORCEDIR=1;;
    "E" ) refvol="$OPTARG";;
@@ -57,7 +57,7 @@ dtidim4=`fslval $dti dim4`
 
 # Set FC (fieldmap correction)
 if [ "$dtir" = "" ] ; then
- if [ "$dph" = "" ] && [ "$mag" = "" ] ; then 
+ if [ "$dph" = "" ] && [ "$mag" = "" ] ; then
   FC=0;
  else
   FC=1
@@ -74,7 +74,7 @@ else
 fi
 
 if [ "x$maskf" != "x" ]; then
-   if [ `test_varimg $maskf` -eq 0 ]; then echo "ERROR: cannot find image: $maskf"; exit 1; fi; 
+   if [ `test_varimg $maskf` -eq 0 ]; then echo "ERROR: cannot find image: $maskf"; exit 1; fi;
 fi
 
 if [ "x$maskd" != "x" ]; then
@@ -85,16 +85,16 @@ fi
 if [ "$bvec" = "" ] && [ "$bval" = "" ] ;  then
     EC=0;
 else
-  if [ $FC != 2 ] ; then 
+  if [ $FC != 2 ] ; then
     EC=1;
     if [ `test_varfile $bvec` -eq 0 ]; then echo "ERROR: no bvecs file specified"; exit 1;fi
-    bvecl=`cat $bvec | awk 'END{print NR}'`; bvecw=`cat $bvec | wc -w`	
+    bvecl=`cat $bvec | awk 'END{print NR}'`; bvecw=`cat $bvec | wc -w`
     if [ $bvecl != 3 ]; then echo "ERROR: bvecs file contains $bvecl lines, it should be 3 lines, each for x, y, z"; exit 1;fi
     if [ $bvecw != `echo 3*$dtidim4 | bc` ]; then echo "ERROR: bvecs file contains $bvecw words, it should be 3 x $dtidim4 words"; exit 1;fi
     if [ `test_varfile $bval` -eq 0 ]; then echo "ERROR: no bvals file specified"; exit 1;fi
     bvall=`cat $bval | awk 'END{print NR}'`; bvalw=`cat $bval | wc -w`
     if [ $bvall != 1 ]; then echo "ERROR: bvals file contains $bvall lines, it should be 1 lines"; exit 1;fi
-    if [ $bvalw != $dtidim4 ]; then echo "ERROR: bvalc file contains $bvalw words, it should be $dtidim4 words"; exit 1;fi 
+    if [ $bvalw != $dtidim4 ]; then echo "ERROR: bvalc file contains $bvalw words, it should be $dtidim4 words"; exit 1;fi
   else
     EC=2;
     if [ "$bvecr" = "" ] ; then echo "Cannot find option -R...exit."; exit 1;fi
@@ -108,18 +108,18 @@ if [ "$outdir" = "" ] ; then
 fi
 if [ "$FORCEDIR" = 0 ] ; then
  while [ -e $outdir ]; do outdir=${outdir}+; done;
- mkdir -p $outdir; 
-elif [ "$FORCEDIR" = 1 ] ; then 
- if [ -e $outdir ]; then 
+ mkdir -p $outdir;
+elif [ "$FORCEDIR" = 1 ] ; then
+ if [ -e $outdir ]; then
   if [ ! -w $outdir ] ; then
    echo "ERROR: cannot create $outdir";
    exit 1;
   fi
-  \rm  -rf $outdir/dti_preprocess $outdir/report; 
+  \rm  -rf $outdir/dti_preprocess $outdir/report;
   for i in data nodif nodif_brain nodif_brain_mask field_rads field_mag data dti_FA dti_V1 dti_V2 dti_V3 dti_L1 dti_L2 dti_L3 dti_S0 dti_MD dti_MO dti_sse; do imrm $outdir/$i; done
   \rm -rf $outdir/bvecs $outdir/bvals
  fi
- mkdir -p $outdir; 
+ mkdir -p $outdir;
 fi;
 
 #########################################################
@@ -251,7 +251,7 @@ if [ $EC != 0 ] ; then
    T fslroi $dti $tmpdir/vol_$j $i 1
    T flirt -in $tmpdir/vol_$j -ref $tmpdir/ED_D_example_dti -nosearch -paddingsize 1 -omat $tmpdir/data_UD_ec.mat/MAT_$j -interp $INTERP -o $tmpdir/vol_$j
    i=`expr $i + 1`
-   done  
+   done
    T fslmerge -t $tmpdir/data_UD_ec `imglob -oneperimage $tmpdir/vol_????.*`
    T imrm $tmpdir/vol_????*
   fi
@@ -265,9 +265,9 @@ fi
 if [ $FC = 1 ] ; then
  T fslmaths $dph $tmpdir/FM_UD_fmap
  T fslmaths $mag $tmpdir/FM_UD_fmap_mag
- if [ "x${maskf}" = "x" ]; then 
+ if [ "x${maskf}" = "x" ]; then
   T bet $tmpdir/FM_UD_fmap_mag $tmpdir/FM_UD_fmap_mag_brain -m -f 0.3
- else 
+ else
   T fslmaths $tmpdir/FM_UD_fmap_mag -mas $maskf $tmpdir/FM_UD_fmap_mag_brain; T fslmaths $maskf -bin $tmpdir/FM_UD_fmap_mag_brain_mask
  fi
  T fslmaths $tmpdir/FM_UD_fmap_mag_brain_mask -ero  $tmpdir/FM_UD_fmap_mag_brain_mask
@@ -275,18 +275,18 @@ if [ $FC = 1 ] ; then
  val=`fslstats $tmpdir/FM_UD_fmap -k $tmpdir/FM_UD_fmap_mag_brain_mask -P 50`
  T fslmaths $tmpdir/FM_UD_fmap -sub $val  $tmpdir/FM_UD_fmap
  T fugue -i $tmpdir/FM_UD_fmap_mag_brain --loadfmap=$tmpdir/FM_UD_fmap --mask=$tmpdir/FM_UD_fmap_mag_brain_mask --dwell=$esp -w $tmpdir/FM_D_fmap_mag_brain --nokspace --unwarpdir=$ud
- 
+
  if [ "$reg" != "0" ] ; then
   T flirt -in $tmpdir/ED_D_example_dti_brain -ref $tmpdir/FM_D_fmap_mag_brain -omat $tmpdir/ED_2_FM.mat -o $tmpdir/grot -dof 6
   T convert_xfm -omat $tmpdir/FM_2_ED.mat -inverse $tmpdir/ED_2_FM.mat
  else
-  echo "1 0 0 0" > $tmpdir/ED_2_FM.mat 
-  echo "0 1 0 0" >> $tmpdir/ED_2_FM.mat 
-  echo "0 0 1 0" >> $tmpdir/ED_2_FM.mat 
-  echo "0 0 0 1" >> $tmpdir/ED_2_FM.mat 
+  echo "1 0 0 0" > $tmpdir/ED_2_FM.mat
+  echo "0 1 0 0" >> $tmpdir/ED_2_FM.mat
+  echo "0 0 1 0" >> $tmpdir/ED_2_FM.mat
+  echo "0 0 0 1" >> $tmpdir/ED_2_FM.mat
   cp $tmpdir/ED_2_FM.mat $tmpdir/FM_2_ED.mat
  fi;
- 
+
  T flirt -in $tmpdir/FM_UD_fmap -ref $tmpdir/ED_D_example_dti -init $tmpdir/FM_2_ED.mat -applyxfm -out $tmpdir/ED_UD_fmap
  T flirt -in $tmpdir/FM_UD_fmap_mag -ref $tmpdir/ED_D_example_dti -init $tmpdir/FM_2_ED.mat -applyxfm -out $tmpdir/ED_UD_fmap_mag
  T flirt -in $tmpdir/FM_UD_fmap_mag_brain -ref $tmpdir/ED_D_example_dti -init $tmpdir/FM_2_ED.mat -applyxfm -out $tmpdir/ED_UD_fmap_mag_brain
@@ -295,7 +295,8 @@ if [ $FC = 1 ] ; then
  T fugue --loadfmap=$tmpdir/ED_UD_fmap --dwell=$esp -i $tmpdir/ED_D_example_dti -u $tmpdir/ED_UD_example_dti --unwarpdir=$ud --saveshift=$tmpdir/ED_UD_shift --mask=$tmpdir/ED_UD_fmap_mag_brain_mask
  T convertwarp -s $tmpdir/ED_UD_shift -o $tmpdir/ED_UD_warp -r $tmpdir/ED_D_example_dti --shiftdir=$ud
  T fslmaths $tmpdir/ED_UD_example_dti $outdir/nodif
- T applywarp -i $tmpdir/ED_D_example_dti_brain -o $outdir/nodif_brain -w $tmpdir/ED_UD_warp -r $tmpdir/ED_D_example_dti --abs --mask=$tmpdir/ED_UD_fmap_mag_brain_mask
+ T applywarp -i $tmpdir/ED_D_example_dti_brain -o $outdir/nodif_brain -w $tmpdir/ED_UD_warp -r $tmpdir/ED_D_example_dti --abs
+ #--mask=$tmpdir/ED_UD_fmap_mag_brain_mask
  T fslmaths $outdir/nodif_brain -bin  $outdir/nodif_brain_mask
 
  cat $reportdir/fieldmap.html | head -n 6 > $reportdir/tmpfieldmap.html
@@ -318,7 +319,7 @@ if [ $FC = 1 ] ; then
  T overlay 1 0 $tmpdir/ED_UD_fmap_mag_brain -a $tmpdir/ED_UD_shift 0 ${V[1]} grot 0 `echo ${V[0]} | tr -d -` grot
  T nii2gif grot $reportdir/ED_UD_shift+mag.gif -s 3
  echo "<I>Unwarping shift map </I><BR><FONT size=1>`round ${V[0]} 0` <IMG src=./ramp2.gif width=30 height=10 border=0 align=top><IMG src=./ramp.gif width=30 height=10 border=0 align=top >`round ${V[1]} 0`[voxel]</FONT><BR>"  >> $reportdir/fieldmap.html
- echo "<IMG src="./ED_UD_shift+mag.gif" width="300" height="100" border="0"><BR><BR>" >> $reportdir/fieldmap.html 
+ echo "<IMG src="./ED_UD_shift+mag.gif" width="300" height="100" border="0"><BR><BR>" >> $reportdir/fieldmap.html
 
  T flirt -in $tmpdir/FM_D_fmap_mag_brain -ref $tmpdir/ED_D_example_dti_brain -applyxfm -init $tmpdir/FM_2_ED.mat -o grot
  T nii2gif grot $reportdir/FM_D_fmap_mag_brain.gif -s 3
@@ -334,8 +335,8 @@ if [ $FC = 1 ] ; then
  T fslstats $tmpdir/ED_UD_fmap_mag_brain.nii.gz -P 20 -P 90
  val=`fslstats $tmpdir/ED_UD_fmap_mag_brain.nii.gz -P 20 -P 90`
  T -e nii2gif $tmpdir/ED_UD_fmap_mag $reportdir/ED_UD_fmap_mag.gif -i '"'$val'"'
- nii2gif $tmpdir/ED_UD_fmap_mag $reportdir/ED_UD_fmap_mag.gif -i "$val" 
- T whirlgif -o $reportdir/ED_UD_movie3.gif -loop -time 50  $reportdir/ED_D_example_dti.gif $reportdir/ED_UD_example_dti.gif $reportdir/ED_UD_fmap_mag.gif 
+ nii2gif $tmpdir/ED_UD_fmap_mag $reportdir/ED_UD_fmap_mag.gif -i "$val"
+ T whirlgif -o $reportdir/ED_UD_movie3.gif -loop -time 50  $reportdir/ED_D_example_dti.gif $reportdir/ED_UD_example_dti.gif $reportdir/ED_UD_fmap_mag.gif
  echo "<I>Uncorrected, corrected b=0 images and a fieldmap magnitude image </I><BR>"  >> report.html
  echo "<IMG src=./${reportdir}/ED_UD_movie3.gif width=300 height=100 border=0><BR><BR>" >> report.html
 
@@ -360,8 +361,8 @@ fi
 # TOPUP and EDDY                                        #
 #########################################################
 if [ $FC = 2 ] ; then
- if [ $EC != 0 ] ; then 
-  if [ $v != 0 ] ; then 
+ if [ $EC != 0 ] ; then
+  if [ $v != 0 ] ; then
     echo "paste $bvec $bvecr > bvecs"; echo ""
     echo "paste $bval $bvalr > bvals"; echo ""
   fi
@@ -374,7 +375,7 @@ if [ $FC = 2 ] ; then
   EF=`fslval $dti $uddim`
   totalreadouttime=`echo "$esp * ($EF - 1)" | bc`
  fi
- if [ "$ud" = "x" ]; then  
+ if [ "$ud" = "x" ]; then
   echo "-1 0 0 $totalreadouttime" > $tmpdir/acq_params.txt;
   echo "1 0 0 $totalreadouttime" >> $tmpdir/acq_params.txt;
  elif [ "$ud" = "y" ]; then
@@ -385,28 +386,28 @@ if [ $FC = 2 ] ; then
  dim1=`fslval $dti dim1`; dim2=`fslval $dti dim2`; dim3=`fslval $dti dim3`; dim4=`fslval $dti dim4`;
  dim4r=`fslval $dtir dim4`; dtidim4=`echo "$dim4 + $dim4r" | bc`
  # test if the number of slices (dim3) is odd or even
- dim3s=0 
+ dim3s=0
  if [ `expr $dim3 % 2` -eq 1 ]; then
   dim3s=1
   dim3=`expr $dim3 - 1`
   T -e "Delete the lowest slice since topup does not prefer odd number of slices."
  fi
 
- T fslroi $dti $tmpdir/b0_1 0 $dim1 0 $dim2 $dim3s $dim3 0 1; 
- T fslroi $dtir $tmpdir/b0_2 0 $dim1 0 $dim2 $dim3s $dim3 0 1; 
+ T fslroi $dti $tmpdir/b0_1 0 $dim1 0 $dim2 $dim3s $dim3 0 1;
+ T fslroi $dtir $tmpdir/b0_2 0 $dim1 0 $dim2 $dim3s $dim3 0 1;
  T fslmerge -t $tmpdir/b0_merge $tmpdir/b0_1 $tmpdir/b0_2
  b0APPA=$tmpdir/b0_merge
 
- T fslroi $dti $tmpdir/dwi1 0 $dim1 0 $dim2 $dim3s $dim3; 
- T fslroi $dtir $tmpdir/dwi2 0 $dim1 0 $dim2 $dim3s $dim3; 
+ T fslroi $dti $tmpdir/dwi1 0 $dim1 0 $dim2 $dim3s $dim3;
+ T fslroi $dtir $tmpdir/dwi2 0 $dim1 0 $dim2 $dim3s $dim3;
  dti1=$tmpdir/dwi1; dti2=$tmpdir/dwi2
- T fslmerge -t $tmpdir/data_D $dti1 $dti2;  
+ T fslmerge -t $tmpdir/data_D $dti1 $dti2;
  dti=$tmpdir/data_D
 
  T nii2gif $dti ${reportdir}/data_D_movie.gif -T 100
  echo "<I>Original distorted data</I><BR>"  >> $reportdir/motion.html
  echo "<IMG src=./data_D_movie.gif  width=300 height=100 border=0><BR><BR>" >> $reportdir/motion.html
- 
+
  # topup
  T topup --imain=$b0APPA --datain=$tmpdir/acq_params.txt --config=b02b0.cnf --out=$tmpdir/topup_results --fout=$tmpdir/field_hz --iout=$tmpdir/b0_topup_merge -v;
  T fslmaths $tmpdir/b0_topup_merge -Tmean $tmpdir/b0_topup_mean
@@ -417,7 +418,7 @@ if [ $FC = 2 ] ; then
  T applytopup --imain=$dti1 --inindex=1 --datain=$tmpdir/acq_params.txt --topup=$tmpdir/topup_results --out=$tmpdir/dwi1_topupapplied --interp=spline --method=jac
  T applytopup --imain=$dti2 --inindex=2 --datain=$tmpdir/acq_params.txt --topup=$tmpdir/topup_results --out=$tmpdir/dwi2_topupapplied --interp=spline --method=jac
  T fslmerge -t $tmpdir/dwi_topupapplied $tmpdir/dwi1_topupapplied $tmpdir/dwi2_topupapplied
- 
+
  # Make report
  cat $reportdir/fieldmap.html | head -n 6 > $reportdir/tmpfieldmap.html
  mv $reportdir/tmpfieldmap.html $reportdir/fieldmap.html
@@ -441,7 +442,7 @@ if [ $FC = 2 ] ; then
  T overlay 1 0 nodif_brain -a $tmpdir/ED_UD_shift 0 ${V[1]} grot 0 `echo ${V[0]} | tr -d -` grot
  T nii2gif grot $reportdir/ED_UD_shift+nodif_brain.gif -s 3
  echo "<I>Unwarping shift map </I><BR><FONT size=1>`round ${V[0]} 0` <IMG src=./ramp2.gif width=30 height=10 border=0 align=top> <IMG src=./ramp.gif width=30 height=10 border=0 align=top >`round ${V[1]} 0`[voxels]</FONT><BR>"  >> $reportdir/fieldmap.html
- echo "<IMG src="./ED_UD_shift+nodif_brain.gif" width="300" height="100" border="0"><BR><BR>" >> $reportdir/fieldmap.html 
+ echo "<IMG src="./ED_UD_shift+nodif_brain.gif" width="300" height="100" border="0"><BR><BR>" >> $reportdir/fieldmap.html
 
  cat report.html | head -n 6 > tmpreport.html; mv tmpreport.html report.html
  echo "<B>B=0 image</B><BR><BR>"  >> report.html
@@ -455,21 +456,21 @@ if [ $FC = 2 ] ; then
   finish_dti_preprocess;
  else
   # eddy
-  if [ -e $tmpdir/index.txt ]; then rm $tmpdir/index.txt;fi; 
+  if [ -e $tmpdir/index.txt ]; then rm $tmpdir/index.txt;fi;
   i=0; while [ $i -lt $dim4 ]; do printf "1 ">> $tmpdir/index.txt; i=`expr $i + 1`; done;
   i=0; while [ $i -lt $dim4r ]; do printf "2 ">> $tmpdir/index.txt; i=`expr $i + 1`; done;
   index="--index=${tmpdir}/index.txt";
-  if [ -e $tmpdir/session.txt ]; then rm $tmpdir/session.txt;fi; 
-  i=0; while [ $i -lt $dim4 ]; do printf "1 ">> $tmpdir/session.txt; i=`expr $i + 1`; done; 
-  i=0; while [ $i -lt $dim4r ]; do printf "2 ">> $tmpdir/session.txt; i=`expr $i + 1`; done; 
- session="--session=${tmpdir}/session.txt"; # although the option, --session, was removed from FSL 5.0.9 
+  if [ -e $tmpdir/session.txt ]; then rm $tmpdir/session.txt;fi;
+  i=0; while [ $i -lt $dim4 ]; do printf "1 ">> $tmpdir/session.txt; i=`expr $i + 1`; done;
+  i=0; while [ $i -lt $dim4r ]; do printf "2 ">> $tmpdir/session.txt; i=`expr $i + 1`; done;
+ session="--session=${tmpdir}/session.txt"; # although the option, --session, was removed from FSL 5.0.9
   T $EDDY --imain=$dti --mask=nodif_brain_mask $index --acqp=$tmpdir/acq_params.txt --bvecs=bvecs --bvals=bvals --topup=$tmpdir/topup_results --out=$tmpdir/data_UD_tued --flm=quadratic $dontpeas $fwhm $session -v;
 
-  if [ `imtest $tmpdir/data_UD_tued` != 1 ] ; then 
-   T -e "WARNING: eddy failed to handle this data..will continue with flirt" 
+  if [ `imtest $tmpdir/data_UD_tued` != 1 ] ; then
+   T -e "WARNING: eddy failed to handle this data..will continue with flirt"
   fi
   if [ -e $tmpdir/data_UD_tuec.mat ] ; then rm -rf $tmpdir/data_UD_tuec.mat; fi
-  T mkdir -p $tmpdir/data_UD_tuec.mat   
+  T mkdir -p $tmpdir/data_UD_tuec.mat
   if [ $FLIRT = 0 ] ; then # mcflirt
    T mcflirt -in $tmpdir/dwi_topupapplied -o $tmpdir/data_UD_tuec -report -stages $MCFLIRT -mats -dof 12 -rmsabs -rmsrel -reffile nodif;
   elif [ $FLIRT = 1 ] ; then # eddy_correct
@@ -483,7 +484,7 @@ if [ $FC = 2 ] ; then
    T fslmerge -t $tmpdir/data_UD_tuec `imglob -oneperimage $tmpdir/vol_????.*`
    imrm `imglob -oneperimage $tmpdir/vol_????.*`
   fi
-  
+
  fi
 
 fi
@@ -492,9 +493,9 @@ fi
 # Make motion & distortion page                         #
 #########################################################
 if [ $EC != 0  ] ; then
- for i in ec fmec tuec tued ; do 
+ for i in ec fmec tuec tued ; do
   if [ `imtest $tmpdir/data_UD_${i}` = 1 ] ; then
-   T nii2gif $tmpdir/data_UD_${i} ${reportdir}/data_UD_${i}_movie.gif -T 100 
+   T nii2gif $tmpdir/data_UD_${i} ${reportdir}/data_UD_${i}_movie.gif -T 100
    if [ $i = ec ] ; then text="Data-based correction (only using eddy_correct)"; elif [ $i = fmec ] ; then text="Data-based correction (using fugue and eddy_correct)"; elif [ $i = tuec ]; then text="Model- and data-based hybrid correction (using topup and eddy_correct)"; elif [ $i = tued ] ; then text="Model-based correction (using topup and eddy)";fi
    echo "<I>$text</I><BR>"  >> $reportdir/motion.html
    echo "<IMG src=./data_UD_${i}_movie.gif  width=300 height=100 border=0><BR><BR>" >> $reportdir/motion.html
@@ -503,7 +504,7 @@ if [ $EC != 0  ] ; then
 
  # Make movement plots
  for i in translation.par rotation.par; do if [ -e $tmpdir/$i ] ; then rm -Rf $tmpdir/$i; fi; done
- 
+
  zero=`round 0`; pi=$(echo "scale=20; 4*a(1)" | bc -l)
 
  if [ $EC != 2 ] ; then
@@ -517,7 +518,7 @@ if [ $EC != 0  ] ; then
   done
  elif [ $EC = 2 ] ; then
    if [ "`cat $tmpdir/data_UD_tued.eddy_parameters | awk 'NR==1 {print $1}'`" = 0 ] ; then
-    cat $tmpdir/data_UD_tued.eddy_parameters | awk '{print $1,$2,$3}' > $tmpdir/translation.par  
+    cat $tmpdir/data_UD_tued.eddy_parameters | awk '{print $1,$2,$3}' > $tmpdir/translation.par
     cat $tmpdir/data_UD_tued.eddy_parameters | awk '{printf "%f %f %f\n",$4*180/'$pi',$5*180/'$pi',$6*180/'$pi'}' > $tmpdir/rotation.par
    else
     i=0
@@ -530,10 +531,10 @@ if [ $EC != 0  ] ; then
     done
    fi
  fi
- 
+
  T fsl_tsplot -i $tmpdir/translation.par -o $reportdir/translation.png -t "Translation" -y [mm] -x Volume -a x,y,z
  T fsl_tsplot -i $tmpdir/rotation.par -o $reportdir/rotation.png -t "Rotation" -y [degree] -x Volume -a x,y,z
- 
+
  echo "<I>Estimated motion</I><BR>" >> $reportdir/motion.html
  meandisl=`cat $tmpdir/translation.par | awk 'BEGIN {x=0;N=0};{x=x+($1^2+$2^2+$3^2)^0.5;N=N+1}END {printf("%f",x/N)}'`
  echo "Mean dislocation : $meandisl [mm] <BR>"  >> $reportdir/motion.html
@@ -568,7 +569,7 @@ val=`fslstats $tmpdir/ED_D_example_dti -C`
 T tsplot $outdir -f $dti -C $val $tmpdir/ts_cogvoxel.txt
 T fsl_tsplot -i $tmpdir/ts_cogvoxel.txt,$tmpdir/ts_bval -o $reportdir/ts_signal-bval.png -a Signal,b-value -t ts-signal-bval-plot -x Volume
 echo "<I>Time series plot of signal and b-value </I><BR>"  >> $reportdir/bvecbval.html
-echo "Time series signal was taken from voxel at $val<BR>" >> $reportdir/bvecbval.html 
+echo "Time series signal was taken from voxel at $val<BR>" >> $reportdir/bvecbval.html
 echo "<IMG src=./ts_signal-bval.png width=600><BR><BR>" >> $reportdir/bvecbval.html
 
 ### plot and stats bvec ###
@@ -604,7 +605,7 @@ echo "Averaged SNR in brain region = $snr <BR>" >> $reportdir/stats.html
 echo "<FONT size=1>0<IMG src=./rainbow.png width=30 height=10 border=0 align=top>20</FONT><BR>" >> $reportdir/stats.html
 echo "<IMG src=./data_D_snr.gif  width=300 height=100 border=0><BR><BR>" >> $reportdir/stats.html
 
-for i in ec fmec tuec tued ; do 
+for i in ec fmec tuec tued ; do
  if [ `imtest $tmpdir/data_UD_${i}` = 1 ] ; then
    T -e ${DTI_PREPROCESS}/bin/dwistats $tmpdir/data_UD_${i} bvals ${tmpdir}/data_UD_${i}
    outdwistats=`${DTI_PREPROCESS}/bin/dwistats $tmpdir/data_UD_${i} bvals ${tmpdir}/data_UD_${i}`
@@ -627,9 +628,9 @@ done
 if [ `cat report.html | wc -l` -lt 8 ] ;then cat report.html | head -n 6 > tmpreport.html; mv tmpreport.html report.html; fi
 
 echo "<B>DTI FA image</B><BR><BR>"  >> report.html
-dtimask=nodif_brain_mask; 
+dtimask=nodif_brain_mask;
 T dtifit -k $dti -o $tmpdir/dti_D -b bvals -r bvecs -m $tmpdir/ED_D_example_dti_brain_mask --sse
-sse=`fslstats $tmpdir/dti_D_sse -k $tmpdir/ED_D_example_dti_brain_mask -M` 
+sse=`fslstats $tmpdir/dti_D_sse -k $tmpdir/ED_D_example_dti_brain_mask -M`
 T nii2gif $tmpdir/dti_D_FA $reportdir/dti_D_FA.gif
 echo "<I>Oiginal distorted data</I><BR>"  >> report.html
 echo "Averaged sum of squre errors :  $sse<BR>"  >> report.html
@@ -639,10 +640,10 @@ for i in ec fmec tuec tued ; do
  if [ `imtest $tmpdir/data_UD_${i}` -eq 1 ] ; then
   T dtifit -k $tmpdir/data_UD_$i -o $tmpdir/dti_UD_$i -b bvals -r bvecs -m $dtimask --sse
   T nii2gif $tmpdir/dti_UD_${i}_FA $reportdir/dti_UD_${i}_FA.gif
-  sse=`fslstats $tmpdir/dti_UD_${i}_sse -k nodif_brain_mask -M` 
-  if [ $i = ec ] ; then text="Data-based correction (only using eddy_correct)"; 
-  elif [ $i = fmec ] ; then text="Data-based correction (using fugue and eddy_correct)"; 
-  elif [ $i = tuec ] ; then text="Model- and data-based hybrid correction (using topup and eddy_correct)"; 
+  sse=`fslstats $tmpdir/dti_UD_${i}_sse -k nodif_brain_mask -M`
+  if [ $i = ec ] ; then text="Data-based correction (only using eddy_correct)";
+  elif [ $i = fmec ] ; then text="Data-based correction (using fugue and eddy_correct)";
+  elif [ $i = tuec ] ; then text="Model- and data-based hybrid correction (using topup and eddy_correct)";
   elif [ $i = tued ] ; then text="Model-based correction (using topup and eddy)";
   fi
   echo "<I>$text </I><BR>"  >> report.html
@@ -657,9 +658,9 @@ done
 for i in tued tuec fmec ec ; do
  if [ `imtest $tmpdir/data_UD_${i}` = 1 ] ; then
    imln ${tmpdir}/data_UD_${i} data
-   if [ $i = ec ] ; then text="Data-based correction (only using eddy_correct + bvecs corrected for motion)"; 
-   elif [ $i = fmec ] ; then text="Data-based correction (using fugue and eddy_correct + bvecs corrected for motion)"; 
-   elif [ $i = tuec ] ; then text="Model- and data-based hybrid correction (using topup and eddy_correct + bvecs corrected for motion)"; 
+   if [ $i = ec ] ; then text="Data-based correction (only using eddy_correct + bvecs corrected for motion)";
+   elif [ $i = fmec ] ; then text="Data-based correction (using fugue and eddy_correct + bvecs corrected for motion)";
+   elif [ $i = tuec ] ; then text="Model- and data-based hybrid correction (using topup and eddy_correct + bvecs corrected for motion)";
    elif [ $i = tued ] ; then text="Model-based correction (using topup and eddy + bvecs corrected for motion)";
    fi
    break
@@ -669,7 +670,7 @@ done
 T ${DTI_PREPROCESS}/bin/bvecrot $outdir
 T dtifit -k data -o $tmpdir/bvecrot/dti -b $tmpdir/bvecrot/bvals -r  $tmpdir/bvecrot/bvecs -m nodif_brain_mask --sse
 $DTI_PREPROCESS/bin/nii2gif $tmpdir/bvecrot/dti_FA report/dti_UD_bvecrot_FA.gif
-sse=`fslstats $tmpdir/bvecrot/dti_sse -k nodif_brain_mask -M` 
+sse=`fslstats $tmpdir/bvecrot/dti_sse -k nodif_brain_mask -M`
 echo "<I>$text </I><BR>"  >> report.html
 echo "Averaged sum of squre errors : $sse <BR>"  >> report.html
 echo "<IMG src=./report/dti_UD_bvecrot_FA.gif width=300 height=100 border=0><BR><BR>" >> report.html

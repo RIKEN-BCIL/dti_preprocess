@@ -20,14 +20,14 @@ EOF
 
 [ "$1" = "" ] && usage_exit
 
-if [ "x$DTI_PREPROCESS" = "x" ] ; then 
- echo "ERROR: cannot find environment variable DTI_PREPROCESS."; 
+if [ "x$DTI_PREPROCESS" = "x" ] ; then
+ echo "ERROR: cannot find environment variable DTI_PREPROCESS.";
  exit 1;
 else
  source ${DTI_PREPROCESS}/etc/conf/dti_preprocess.conf
 fi
 
-source $HCPEnvironmentScript >/dev/null 2>&1
+#source $HCPEnvironmentScript >/dev/null 2>&1
 
 DiffData=$1
 subj=`make_absolute $2`
@@ -56,7 +56,7 @@ mkdir -p $DiffData/reg
 mkdir -p $DiffData/struc
 mkdir -p $outdirT1w
 
-if [ "$SPECIES" = "Human" ] || [ "$SPECIES" = "" ] ; then 
+if [ "$SPECIES" = "Human" ] || [ "$SPECIES" = "" ] ; then
   command=DiffusionToStructural.sh
 else
   command=DiffusionToStructural_RIKEN.sh
@@ -81,7 +81,7 @@ echo "Running Diffusion to Structural Registration"
 		--diffresol=${DiffRes}
 
 
-cp $Study/$Subject/T1w/*nii.gz $DiffData/struc/ 
+cp $Study/$Subject/T1w/*nii.gz $DiffData/struc/
 #cp -r $Study/$Subject/T1w/Native $DiffData/struc/
 
 # register dti to struc acpc space, rotate bvec, calculate DTI and perform QC
@@ -135,6 +135,3 @@ whirlgif -o $DiffData/report/FA+T1w+T2w_movie.gif -loop -time 50 $DiffData/repor
 echo "<BR><B>QC in ACPC space</B><BR><BR>"  >> $DiffData/report.html
 echo "<I>Registration of DTI FA, T1w and T2w images in ACPC space</I><BR>"  >> $DiffData/report.html
 echo "<IMG src=./report/FA+T1w+T2w_movie.gif  width=300 height=100 border=0><BR>" >> $DiffData/report.html
-
-
-
