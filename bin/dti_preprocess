@@ -694,7 +694,7 @@ ln -s $tmpdir/bvecrot/bvecs bvecs
 # Registration to HCP pipeline                          #
 #########################################################
 if [ "$hcp" != "" ] ; then
- T ${DTI_PREPROCESS}/bin/regdtiprep2hcp $outdir $hcp
+ T ${DTI_PREPROCESS}/bin/regdtiprep2hcp $outdir $hcp $hcp/T1w/Diffusion
 fi
 
 #########################################################
