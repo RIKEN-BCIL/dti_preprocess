@@ -28,10 +28,10 @@ for i in `cat $tmp | awk '{if ($1<=20) print NR-1}'`; do
   j=`zeropad $i 4`
   fslroi ${dwi} ${tmp}_${j} $i 1
 done
-num=`imglob ${tmp}_????.nii.gz | wc -w`
+num=`imglob -oneperimage ${tmp}_????.* | wc -w`
 if [ "$num" = 0 ] ; then echo "Error: Cannot find b0 volumes"; exit 1;fi
 
-fslmerge -t ${tmp}_merge `imglob -onerperimage ${tmp}_????`
+fslmerge -t ${tmp}_merge `imglob -onerperimage ${tmp}_????.*`
 fslmaths ${tmp}_merge -Tmean ${out}_mean -odt float
 fslmaths ${tmp}_merge -Tstd ${out}_std -odt float
 fslmaths ${out}_mean -div ${out}_std ${out}_snr -odt float
