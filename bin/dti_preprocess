@@ -1,6 +1,6 @@
 #! /bin/bash
 #  Unwarping of B0 inhomogeneity distortion, correction of eddy current distortion and motion, tensor calculation and QA using FSL
-#  Takuya Hayashi, Center for Life Science Technologies, RIKEN (takuya.hayashi@riken.jp, takuya.hayashi@gmail.com), Kobe, JP
+#  Takuya Hayashi, Brain Connectomics Imaging Lab (BCIL), RIKEN (takuya.hayashi@riken.jp, takuya.hayashi@gmail.com), Kobe, JP
 
 #########################################################
 # Configuration                                         #
@@ -253,7 +253,7 @@ if [ $EC != 0 ] ; then
    i=`expr $i + 1`
    done
    T fslmerge -t $tmpdir/data_UD_ec `imglob -oneperimage $tmpdir/vol_????.*`
-   T imrm $tmpdir/vol_????*
+   T imrm $tmpdir/vol_????.*
   fi
  fi
 
