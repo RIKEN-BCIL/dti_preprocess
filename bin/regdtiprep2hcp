@@ -107,7 +107,7 @@ fslroi $outdirT1w/data $outdirT1w/dwiclosex $x 1
 fslroi $outdirT1w/data $outdirT1w/dwiclosey $y 1
 fslroi $outdirT1w/data $outdirT1w/dwiclosez $z 1
 
-nii2gif $outdirT1w/snr $DiffData/report/snr.gif -l $lut -s 3
+nii2gif $outdirT1w/data_snr $DiffData/report/snr.gif -l $lut -s 3
 nii2gif $outdirT1w/roi $DiffData/report/roi.gif -l $lut -s 3
 pngappend $DiffData/report/snr.gif - $DiffData/report/roi.gif  $DiffData/report/snr+roi.gif
 
