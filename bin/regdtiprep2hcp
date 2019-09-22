@@ -95,7 +95,7 @@ fslmaths $outdirT1w/ribbon_L -mul 2 -add $outdirT1w/ribbon_R -mul 2 -add $outdir
 
 bvecclosestorthogonal $outdirT1w/bvals $outdirT1w/bvecs > $outdirT1w/bvecclosestorthogonal.txt
 
-flirt -in $DiffData/dti_preprocess/data_UD_tued_snr.nii.gz -ref $outdirT1w/nodif_brain_mask.nii.gz  -applyxfm -init $DiffData/reg/diff2str.mat -o $outdirT1w/snr
+dwistats $outdirT1w/data.nii.gz $outdirT1w/bvals $outdirT1w/data $outdirT1w/nodif_brain_mask.nii.gz > $outdirT1w/data_snr.txt
 
 x=`cat  $outdirT1w/bvecclosestorthogonal.txt | awk '{printf "%d ", $9}' | awk  '{print $2}'`
 y=`cat  $outdirT1w/bvecclosestorthogonal.txt | awk '{printf "%d ", $9}' | awk  '{print $3}'`
