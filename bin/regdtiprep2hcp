@@ -114,9 +114,9 @@ pngappend $DiffData/report/snr.gif - $DiffData/report/roi.gif  $DiffData/report/
 echo "<BR><B>QC in ACPC space </B><BR><BR>"  >> $DiffData/report/stats.html
 echo "<I>SNR and ROIs in ACPC space </I><BR>"  >> $DiffData/report/stats.html
 echo "<IMG src=./snr+roi.gif  width=300 height=200 border=0><BR>" >> $DiffData/report/stats.html
-echo "SNR in right cortical ribbon (mean,sd) = `fslstats $outdirT1w/snr -k $outdirT1w/ribbon_R -m -s`<BR>"  >> $DiffData/report/stats.html
-echo "SNR in left cortical ribbon (mean,sd) = `fslstats $outdirT1w/snr -k $outdirT1w/ribbon_L -m -s`<BR>"  >> $DiffData/report/stats.html
-echo "SNR in callosum (mean,sd) = `fslstats $outdirT1w/snr -k $outdirT1w/callosum -m -s`<BR><BR>"  >> $DiffData/report/stats.html
+echo "SNR in right cortical ribbon (mean,sd) = `fslstats $outdirT1w/data_snr -k $outdirT1w/ribbon_R -m -s`<BR>"  >> $DiffData/report/stats.html
+echo "SNR in left cortical ribbon (mean,sd) = `fslstats $outdirT1w/data_snr -k $outdirT1w/ribbon_L -m -s`<BR>"  >> $DiffData/report/stats.html
+echo "SNR in callosum (mean,sd) = `fslstats $outdirT1w/data_snr -k $outdirT1w/callosum -m -s`<BR><BR>"  >> $DiffData/report/stats.html
 
 echo "<I>Signal intensity in DWI</I><BR>"  >> $DiffData/report/stats.html
 echo "B0 signal in callosum (mean,sd) = `fslstats $outdirT1w/nodif -k $outdirT1w/callosum -m -s`<BR>"  >> $DiffData/report/stats.html
