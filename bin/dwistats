@@ -23,11 +23,15 @@ out=$3
 mask=$4
 tmp=tmp_$$
 
-transposematrix $bval $tmp
-for i in `cat $tmp | awk '{if ($1<=20) print NR-1}'`; do
-  j=`zeropad $i 4`
-  fslroi ${dwi} ${tmp}_${j} $i 1
+j=0;
+for i in `cat $bval`; do
+	if [ `echo $i | awk '{printf "%d",$1}'` -le $b0thresh ] ; then
+		  echo "Found b=0 volume at tdim=$j"
+    fslroi ${dwi} ${tmp}_`zeropad $j 4` $j 1
+	fi;
+	j=`expr $j + 1`;
 done
+
 num=`imglob -oneperimage ${tmp}_????.* | wc -w`
 if [ "$num" = 0 ] ; then echo "Error: Cannot find b0 volumes"; exit 1;fi
 
